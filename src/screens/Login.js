@@ -70,7 +70,7 @@ class Login extends Component {
       // Sign-in the user with the credential
       return auth().signInWithCredential(googleCredential);
     } catch (e) {
-      this.setState({ error: e.message });
+      this.setState({ error: 'failed to connect via google account' });
     }
   }
   render() {
