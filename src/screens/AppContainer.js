@@ -6,6 +6,7 @@ import Home from './Home';
 import Home2 from './Home2';
 import Register from './Register';
 import Login from './Login';
+import Events from './Events';
 
 const Stack = createNativeStackNavigator();
 class AppContainer extends Component {
@@ -22,6 +23,7 @@ class AppContainer extends Component {
             component={Home}
             options={{ title: 'Welcome' }}
           />
+          <Stack.Screen name="Events" component={Events} />
           <Stack.Screen
             name="Home2"
             component={Home2}
