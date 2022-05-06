@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import { Button, Text, TouchableOpacity, View, TextInput } from 'react-native';
+import {
+  Button,
+  Text,
+  TouchableOpacity,
+  View,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { countDown, countUp } from '../actions';
 import auth from '@react-native-firebase/auth';
@@ -18,6 +25,7 @@ class Login extends Component {
       email: '',
       password: '',
       error: null,
+      loading: false,
     };
     this.subscriber = null;
   }
@@ -35,7 +43,7 @@ class Login extends Component {
     }
   }
   makeLogin() {
-    this.setState({ error: null });
+    this.setState({ error: null, loading: true });
     auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
@@ -43,13 +51,19 @@ class Login extends Component {
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
-          this.setState({ error: 'That email address is already in use!' });
+          this.setState({
+            error: 'That email address is already in use!',
+            loading: false,
+          });
 
           console.log('That email address is already in use!');
         }
 
         if (error.code === 'auth/invalid-email') {
-          this.setState({ error: 'That email address is invalid!' });
+          this.setState({
+            error: 'That email address is invalid!',
+            loading: false,
+          });
 
           console.log('That email address is invalid!');
         }
@@ -58,7 +72,7 @@ class Login extends Component {
       });
   }
   async onGoogleButtonPress() {
-    this.setState({ error: null });
+    this.setState({ error: null, loading: true });
 
     // Get the users ID token
     try {
@@ -70,7 +84,10 @@ class Login extends Component {
       // Sign-in the user with the credential
       return auth().signInWithCredential(googleCredential);
     } catch (e) {
-      this.setState({ error: 'failed to connect via google account' });
+      this.setState({
+        error: 'failed to connect via google account',
+        loading: false,
+      });
     }
   }
   render() {
@@ -103,6 +120,7 @@ class Login extends Component {
           <Text style={{ color: '#ff4444' }}>{this.state.error}</Text>
         )}
         <TouchableOpacity
+          disabled={this.state.loading}
           style={[
             {
               margin: 10,
@@ -114,7 +132,7 @@ class Login extends Component {
             { backgroundColor: '#fff' },
           ]}
           onPress={() => this.makeLogin()}>
-          <Text>Login</Text>
+          {this.state.loading ? <ActivityIndicator /> : <Text>Login</Text>}
         </TouchableOpacity>
         <Button
           title="login with Goggle"

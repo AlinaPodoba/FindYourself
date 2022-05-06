@@ -19,14 +19,16 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove 
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    height: 400,
-    width: 400,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    position:'relative',
+    height: 300,
+    flex: 1,
+    borderWidth: 1,
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    position:'relative',
+    height: 300,
+    width: '100%',
+
   },
 });
 
@@ -38,7 +40,8 @@ class Events extends Component {
       lat: 31.8,
       lng: 34.65,
       events: [],
-      loading:false
+      loading: false,
+      selectEvent:null
     };
   }
   componentDidMount() {
@@ -146,7 +149,7 @@ class Events extends Component {
           )}
         </View>
         {this.state.events && (
-          <ScrollView>
+          <ScrollView style={{borderWidth:1}}>
             <View>
               {this.state.events.map((x, i) => (
                 <View key={i}>

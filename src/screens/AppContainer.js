@@ -7,6 +7,7 @@ import Home2 from './Home2';
 import Register from './Register';
 import Login from './Login';
 import Events from './Events';
+import UserCargory from './UserCargory';
 
 const Stack = createNativeStackNavigator();
 class AppContainer extends Component {
@@ -24,6 +25,14 @@ class AppContainer extends Component {
             options={{ title: 'Welcome' }}
           />
           <Stack.Screen name="Events" component={Events} />
+          <Stack.Screen
+            name="UserCategory"
+            component={UserCargory}
+            options={{
+              title: 'Select your catrgory',
+              headerBackVisible: false,
+            }}
+          />
           <Stack.Screen
             name="Home2"
             component={Home2}
