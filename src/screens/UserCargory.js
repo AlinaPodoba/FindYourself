@@ -6,6 +6,7 @@ import {
   View,
   BackHandler,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -60,6 +61,13 @@ class UserCargory extends Component {
 
   render() {
     const { navigation } = this.props;
+    const groups = this.state.categories
+      .map((e, i) => {
+        return i % 2 === 0 ? this.state.categories.slice(i, i + 2) : null;
+      })
+      .filter(e => {
+        return e;
+      });
     return (
       <View>
         <Button
@@ -84,15 +92,27 @@ class UserCargory extends Component {
 
         {this.state.categories && (
           <ScrollView>
-            <View>
-              {this.state.categories.map((x, i) => (
-                <View
-                  key={i}
-                  style={{ borderWidth: 1 }}
-                  onPress={() => {
-                    navigation.navigate('Events', { x });
-                  }}>
-                  <Text>{x}</Text>
+            <View style={styles.categoriesHolder}>
+              {groups.map((x, i) => (
+                <View key={i} style={{ flexDirection: 'row' }}>
+                  <TouchableOpacity
+                    style={styles.categoryStyle}
+                    onPress={() => {
+                      navigation.navigate('Events', { category: x[0] });
+                    }}>
+                    <Text style={{ alignSelf: 'center' }}>{x[0]}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryStyle,
+                      { borderWidth: x[1] ? 1 : 0 },
+                    ]}
+                    onPress={() => {
+                      navigation.navigate('Events', { category: x[1] });
+                    }}>
+                    <Text>{x[1]}</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -102,7 +122,18 @@ class UserCargory extends Component {
     );
   }
 }
-
+const styles = StyleSheet.create({
+  categoryStyle: {
+    borderWidth: 1,
+    flex: 1,
+    margin: 20,
+    padding: 20,
+    minHeight: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoriesHolder: { flex: 1, paddingBottom: 100 },
+});
 const mapStateToProps = state => ({
   user: state.user.user,
 });

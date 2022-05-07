@@ -19,16 +19,14 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove 
 
 const styles = StyleSheet.create({
   container: {
-    position:'relative',
-    height: 300,
+    minHeight: 200,
     flex: 1,
     borderWidth: 1,
   },
   map: {
-    position:'relative',
-    height: 300,
+    position: 'relative',
+    minHeight: 200,
     width: '100%',
-
   },
 });
 
@@ -36,23 +34,40 @@ const reference = database().ref('/users/');
 class Events extends Component {
   constructor(props) {
     super(props);
+    console.log(props);
     this.state = {
       lat: 31.8,
       lng: 34.65,
       events: [],
       loading: false,
-      selectEvent:null
+      selectEvent: null,
+      category: this.props.route.params.category,
     };
   }
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
+    console.log('this.state.category', this.state.category);
     this.eventListener = database()
-      .ref('/events')
+      .ref('/events/' + this.state.category + '/')
       .once('value', snapshot => {
         this.intVal = [];
         console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
-          this.intVal.push(child.val());
+          console.log('User child: ', child.val());
+          this.intVal.push({
+            ...child.val(),
+            distance: Number(
+              this.getDistanceFromLatLonInKm(
+                this.state.lat,
+                this.state.lng,
+                child.val().lat,
+                child.val().lng,
+              ).toFixed(2),
+            ),
+          });
+        });
+        this.intVal.sort((a, b) => {
+          return a.distance - b.distance;
         });
         this.setState({ events: this.intVal });
       });
@@ -101,6 +116,23 @@ class Events extends Component {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     );
   }
+  getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    var R = 6371; // km
+    var dLat = this.toRad(lat2 - lat1);
+    var dLon = this.toRad(lon2 - lon1);
+    var lat1 = this.toRad(lat1);
+    var lat2 = this.toRad(lat2);
+
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c;
+    return d;
+  }
+  toRad(Value) {
+    return (Value * Math.PI) / 180;
+  }
   getLocationPermission() {}
   render() {
     const { navigation } = this.props;
@@ -119,9 +151,21 @@ class Events extends Component {
         <Text>
           lat {this.state.lat} lng {this.state.lng}
         </Text>
-        <Text> </Text>
-
-        <Text> </Text>
+        <View>
+          {this.state.events && (
+            <ScrollView style={{ borderWidth: 1 }}>
+              <View style={{ flex: 1 }}>
+                {this.state.events.map((x, i) => (
+                  <View key={i}>
+                    <Text>
+                      {x.name} D:{x.distance}km
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          )}
+        </View>
         <View style={styles.container}>
           {this.state.loading && <ActivityIndicator />}
           {!this.state.loading && (
@@ -148,17 +192,6 @@ class Events extends Component {
             </MapView>
           )}
         </View>
-        {this.state.events && (
-          <ScrollView style={{borderWidth:1}}>
-            <View>
-              {this.state.events.map((x, i) => (
-                <View key={i}>
-                  <Text>{x.name}</Text>
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-        )}
       </View>
     );
   }
