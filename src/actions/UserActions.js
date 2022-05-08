@@ -11,7 +11,9 @@ export const setUser = (user, navigation) => {
         .then(snapshot => {
           console.log('User data: ', snapshot.val());
           if (snapshot.val() && snapshot.val().includes(user.email)) {
-            navigation.navigate('Home2');
+            navigation.navigate('BusinessAdminScreen', {
+              businessId: user.uid,
+            });
             return;
           }
           navigation.navigate('UserCategory');
