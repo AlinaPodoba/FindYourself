@@ -8,6 +8,7 @@ import Register from './Register';
 import Login from './Login';
 import Events from './Events';
 import UserCargory from './UserCargory';
+import BusinessScreen, { MenuScreen } from './BusinessScreen';
 
 const Stack = createNativeStackNavigator();
 class AppContainer extends Component {
@@ -25,6 +26,16 @@ class AppContainer extends Component {
             options={{ title: 'Welcome' }}
           />
           <Stack.Screen name="Events" component={Events} />
+          <Stack.Screen
+            name="BusinessScreen"
+            component={BusinessScreen}
+            options={{ title: 'מידע לגבי בית העסק' }}
+          />
+          <Stack.Screen
+            name="MenuScreen"
+            component={MenuScreen}
+            options={{ title: 'תפריט' }}
+          />
           <Stack.Screen
             name="UserCategory"
             component={UserCargory}

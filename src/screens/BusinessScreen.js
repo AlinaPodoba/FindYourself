@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 });
 
 const reference = database().ref('/users/');
-class Events extends Component {
+class BusinessScreen extends Component {
   constructor(props) {
     super(props);
     console.log(props);
@@ -40,37 +40,26 @@ class Events extends Component {
       lng: 34.65,
       events: [],
       loading: false,
-      selectEvent: null,
-      category: this.props.route.params.category,
+      selectEvent: this.props.route.params.event,
+      itemId: this.props.route.params.itemId,
+      businessId: this.props.route.params.itemId.split('+')[0],
+      feedbacks: [],
+      menu: [],
+      name: '',
+      openningHours: '',
     };
   }
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
-    console.log('this.state.category', this.state.category);
     this.eventListener = database()
-      .ref('/events/' + this.state.category + '/')
+      .ref('/Business/' + this.state.businessId + '/')
       .once('value', snapshot => {
         this.intVal = [];
         console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
+          this.setState({ [child.key]: child.val() });
           console.log('User child: ', child.val());
-          this.intVal.push({
-            ...child.val(),
-            id: child.key,
-            distance: Number(
-              this.getDistanceFromLatLonInKm(
-                this.state.lat,
-                this.state.lng,
-                child.val().lat,
-                child.val().lng,
-              ).toFixed(2),
-            ),
-          });
         });
-        this.intVal.sort((a, b) => {
-          return a.distance - b.distance;
-        });
-        this.setState({ events: this.intVal });
       });
     permission.check().then(res => {
       if (res) {
@@ -117,64 +106,55 @@ class Events extends Component {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     );
   }
-  getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    var R = 6371; // km
-    var dLat = this.toRad(lat2 - lat1);
-    var dLon = this.toRad(lon2 - lon1);
-    var lat1 = this.toRad(lat1);
-    var lat2 = this.toRad(lat2);
 
-    var a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return d;
-  }
-  toRad(Value) {
-    return (Value * Math.PI) / 180;
-  }
-  getLocationPermission() {}
   render() {
     const { navigation } = this.props;
+    const { selectEvent, name, openningHours, menu, feedbacks } = this.state;
     return (
       <View>
-        <Button
-          title="back to Home"
-          onPress={() => {
-            auth()
-              .signOut()
-              .then(() => console.log('User signed out!'));
-            navigation.goBack();
-          }}
-        />
-        <Text>location</Text>
-        <Text>
-          lat {this.state.lat} lng {this.state.lng}
-        </Text>
         <View>
-          {this.state.events && (
-            <ScrollView style={{ borderWidth: 1 }}>
+          <Text
+            style={{
+              textDecorationLine: 'underline',
+              color: '#000000',
+              alignSelf: 'center',
+            }}>
+            {name}
+          </Text>
+          <Text>שעות פתיחה {openningHours}</Text>
+          <Text style={{ fontWeight: '700' }}>פרטי האירוע</Text>
+          <Text>קטגוריה {this.state.selectEvent.category}</Text>
+          <Text>שעות הפעילות {this.state.selectEvent.time}</Text>
+          <Text></Text>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('MenuScreen', { menu });
+            }}>
+            <Text>הקש לקבלת התפריט</Text>
+          </TouchableOpacity>
+          <Text>תגובות ודירוג</Text>
+          {feedbacks && (
+            <ScrollView>
               <View style={{ flex: 1 }}>
-                {this.state.events.map((item, i) => (
-                  <TouchableOpacity
-                    onPress={() => {
-                      navigation.navigate('BusinessScreen', {
-                        itemId: item.id,
-                        event: { ...item, category: this.state.category },
-                      });
-                    }}
+                {feedbacks.map((item, i) => (
+                  <View
                     key={i}
                     style={{
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
-                      justifyContent: 'space-between',
-                      flexDirection: 'row',
                     }}>
+                    <View
+                      key={i}
+                      style={{
+                        justifyContent: 'space-between',
+                        flexDirection: 'row',
+                      }}>
+                      <Text>{item.rate} stars</Text>
+                      <Text>{item.comment}</Text>
+                    </View>
                     <Text style={{ color: '#000000' }}>{item.name}</Text>
-                    <Text>{item.distance}km</Text>
-                  </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             </ScrollView>
@@ -192,17 +172,14 @@ class Events extends Component {
                 latitudeDelta: 0.05,
                 longitudeDelta: 0.05,
               }}>
-              {this.state.events.map((x, i) => (
-                <Marker
-                  key={i}
-                  coordinate={{
-                    latitude: x.lat,
-                    longitude: x.lng,
-                  }}
-                  title={x.name}
-                  description={x.description}
-                />
-              ))}
+              <Marker
+                coordinate={{
+                  latitude: selectEvent.lat,
+                  longitude: selectEvent.lng,
+                }}
+                title={selectEvent.name}
+                description={selectEvent.description}
+              />
             </MapView>
           )}
         </View>
@@ -216,4 +193,31 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Events);
+export const MenuScreen = ({ navigation, route }) => {
+  const { menu } = route.params;
+  return (
+    <View>
+      {menu && (
+        <ScrollView style={{ borderWidth: 1 }}>
+          <View style={{ flex: 1 }}>
+            {menu.map((item, i) => (
+              <View
+                key={i}
+                style={{
+                  borderWidth: 1,
+                  padding: 10,
+                  margin: 10,
+                  justifyContent: 'space-between',
+                  flexDirection: 'row',
+                }}>
+                <Text style={{ color: '#000000' }}>{item.name}</Text>
+                <Text>{item.price}$</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+    </View>
+  );
+};
+export default connect(mapStateToProps, mapDispatchToProps)(BusinessScreen);
