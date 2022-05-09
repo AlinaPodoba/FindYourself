@@ -9,7 +9,8 @@ import Login from './Login';
 import Events from './Events';
 import UserCargory from './UserCargory';
 import BusinessScreen, { MenuScreen } from './BusinessScreen';
-import BusinessAdminScreen from './BusinessAdminScreen';
+import BusinessAdminScreen, { MenuScreenEdit } from './BusinessAdminScreen';
+import { Button, Text, TouchableOpacity } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 class AppContainer extends Component {
@@ -36,6 +37,13 @@ class AppContainer extends Component {
             name="MenuScreen"
             component={MenuScreen}
             options={{ title: 'תפריט' }}
+          />
+          <Stack.Screen
+            name="MenuScreenEdit"
+            component={MenuScreenEdit}
+            options={{
+              title: 'עריכת התפריט',
+            }}
           />
           <Stack.Screen
             name="UserCategory"

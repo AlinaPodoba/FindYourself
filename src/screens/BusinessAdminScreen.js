@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import {
   Button,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -34,7 +35,6 @@ const reference = database().ref('/users/');
 class BusinessAdminScreen extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
     this.state = {
       lat: 31.8,
       lng: 34.65,
@@ -45,9 +45,15 @@ class BusinessAdminScreen extends Component {
       menu: [],
       name: '',
       openningHours: '',
+      isAddMenu: false,
     };
   }
+  addItem() {
+    console.log('ADD ITEM');
+    this.setState({ isAddMenu: !this.state.isAddMenu });
+  }
   componentDidMount() {
+    this.setState({ events: [] });
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
     database()
@@ -55,7 +61,7 @@ class BusinessAdminScreen extends Component {
       .once('value')
       .then(snapshot => {
         this.intVal = [];
-        console.log('User categories: ', snapshot.val());
+        // console.log('User categories: ', snapshot.val());
         snapshot.forEach(child => {
           this.intVal.push(child.val());
         });
@@ -64,14 +70,18 @@ class BusinessAdminScreen extends Component {
           database()
             .ref('/events/' + x + '/' + this.state.businessId)
             .once('value', snapshot => {
-              console.log('User events for businessId: ', snapshot.val());
+              // console.log(
+              //   'User events type for businessId: ',
+              //   x,
+              //   snapshot.val(),
+              // );
               snapshot.forEach(child => {
-                let item = { ...child.val(), catrgory: x,id:child.key };
-                console.log('User events for businessId: ', item);
+                let item = { ...child.val(), catrgory: x, id: child.key };
+                // console.log('User events : ', item);
 
                 this.events.push(item);
               });
-              this.setState({ events: this.events });
+              this.setState({ events: [...this.events] });
             });
         });
       });
@@ -80,10 +90,10 @@ class BusinessAdminScreen extends Component {
       .ref('/Business/' + this.state.businessId + '/')
       .once('value', snapshot => {
         this.intVal = [];
-        console.log('User events: ', snapshot.val());
+        // console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
           this.setState({ [child.key]: child.val() });
-          console.log('User child: ', child.val());
+          // console.log('User child: ', child.val());
         });
       });
     permission.check().then(res => {
@@ -108,7 +118,7 @@ class BusinessAdminScreen extends Component {
     // this.setState({ loading: true });
     Geolocation.getCurrentPosition(
       position => {
-        console.log(position);
+        // console.log(position);
         const { latitude: lat, longitude: lng } = position.coords;
         database()
           .ref('/users/' + user.uid)
@@ -135,9 +145,8 @@ class BusinessAdminScreen extends Component {
   render() {
     const { navigation } = this.props;
     const { name, openningHours, menu, feedbacks, events } = this.state;
-    console.log('events',events);
     return (
-      <View>
+      <ScrollView>
         <View>
           <Text
             style={{
@@ -178,7 +187,10 @@ class BusinessAdminScreen extends Component {
           <Text></Text>
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('MenuScreen', { menu });
+              navigation.navigate('MenuScreenEdit', {
+                menu,
+                businessId: this.state.businessId,
+              });
             }}>
             <Text>הקש לקבלת התפריט</Text>
           </TouchableOpacity>
@@ -210,7 +222,7 @@ class BusinessAdminScreen extends Component {
             </ScrollView>
           )}
         </View>
-      </View>
+      </ScrollView>
     );
   }
 }
@@ -220,29 +232,126 @@ const mapStateToProps = state => ({
 });
 const mapDispatchToProps = {};
 
-export const MenuScreen = ({ navigation, route }) => {
-  const { menu } = route.params;
+export const MenuScreenEdit = ({ navigation, route }) => {
+  const { businessId } = route.params;
+
+  const [menu, updateMenu] = useState(route.params.menu);
+  const [method, action] = useState('add');
+  const [id, setId] = useState(0);
+  const [itemsAddShow, addItem] = useState(false);
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  navigation.setOptions({
+    headerRight: () => (
+      <TouchableOpacity
+        onPress={() => {
+          addItem(!itemsAddShow);
+          setId(menu.length);
+          action('add');
+          setName('');
+          setPrice('');
+        }}>
+        {itemsAddShow ? <Text>ניקוי</Text> : <Text>הוספה</Text>}
+      </TouchableOpacity>
+    ),
+  });
   return (
     <View>
-      {menu && (
-        <ScrollView style={{ borderWidth: 1 }}>
-          <View style={{ flex: 1 }}>
-            {menu.map((item, i) => (
-              <View
-                key={i}
+      {itemsAddShow && (
+        <View style={{ paddingBottom: 20 }}>
+          {method === 'add' ? <Text>הוספת מוצר</Text> : <Text>עריכת מוצר</Text>}
+          <View>
+            <View
+              style={{
+                justifyContent: 'flex-end',
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+              }}>
+              <TextInput
+                value={name}
+                onChangeText={name => setName(name)}
                 style={{
-                  borderWidth: 1,
-                  padding: 10,
-                  margin: 10,
-                  justifyContent: 'space-between',
-                  flexDirection: 'row',
-                }}>
-                <Text style={{ color: '#000000' }}>{item.name}</Text>
-                <Text>{item.price}$</Text>
-              </View>
-            ))}
+                  flex: 1,
+                  borderBottomWidth: 1,
+                  padding: 0,
+                  maxWidth: 200,
+                }}
+              />
+              <Text>שם</Text>
+            </View>
+            <View
+              style={{
+                justifyContent: 'flex-end',
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+              }}>
+              <TextInput
+                value={price}
+                onChangeText={price => setPrice(price)}
+                style={{
+                  flex: 1,
+                  borderBottomWidth: 1,
+                  padding: 0,
+                  maxWidth: 200,
+                }}
+              />
+              <Text>מחיר</Text>
+            </View>
+            <TouchableOpacity
+            style={{borderWidth:1,borderRadius:20,color: '#fff',alignSelf:'flex-start',backgroundColor:'#44f',paddingHorizontal:20,paddingVertical:5,marginTop:15}}
+              onPress={() => {
+                database()
+                  .ref('/Business/' + businessId + '/menu/' + id)
+                  .set({ name, price: Number(price).toFixed(2) }, () => {
+                    addItem(false);
+                    database()
+                      .ref('/Business/' + businessId + '/')
+                      .once('value', snapshot => {
+                        // console.log('User events: ', snapshot.val());
+                        snapshot.forEach(child => {
+                          if (child.key === 'menu') {
+                            updateMenu(child.val());
+                          }
+                        });
+                      });
+                  });
+              }}>
+              {method === 'add' ? <Text style={{color:'#fff',textAlign:'left'}}>הוסף</Text> : <Text style={{color:'#fff',textAlign:'left'}}>ערוך</Text>}
+            </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
+      )}
+      {menu && (
+        <View>
+          <ScrollView style={{ borderWidth: 1, paddingBottom: 100 }}>
+            <View style={{ flex: 1 }}>
+              {menu.map((item, i) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    addItem(true);
+                    action('edit');
+                    setName(item.name);
+                    setPrice(Number(item.price).toFixed(2));
+                    setId(i);
+                  }}
+                  key={i}
+                  style={{
+                    borderWidth: 1,
+                    padding: 10,
+                    margin: 10,
+                    justifyContent: 'space-between',
+                    flexDirection: 'row',
+                  }}>
+                  <View style={{ flexDirection: 'row' }}>
+                    <Text style={{ color: '#4499ff' }}>ערוך</Text>
+                    <Text>{item.price}$</Text>
+                  </View>
+                  <Text style={{ color: '#000000' }}>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
       )}
     </View>
   );

@@ -54,18 +54,21 @@ class Events extends Component {
         console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
           console.log('User child: ', child.val());
-          this.intVal.push({
-            ...child.val(),
-            id: child.key,
-            distance: Number(
-              this.getDistanceFromLatLonInKm(
-                this.state.lat,
-                this.state.lng,
-                child.val().lat,
-                child.val().lng,
-              ).toFixed(2),
-            ),
+          Object.keys(child.val()).map(subChild => {
+            this.intVal.push({
+              ...child.val()[subChild],
+              id: child.key,
+              distance: Number(
+                this.getDistanceFromLatLonInKm(
+                  this.state.lat,
+                  this.state.lng,
+                  child.val()[subChild].lat,
+                  child.val()[subChild].lng,
+                ).toFixed(2),
+              ),
+            });
           });
+         
         });
         this.intVal.sort((a, b) => {
           return a.distance - b.distance;
