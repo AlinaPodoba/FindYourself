@@ -10,9 +10,12 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Image,
+  Modal,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
+import { Picker } from '@react-native-picker/picker';
 import { permission } from '../utils/permission';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
@@ -29,6 +32,27 @@ const styles = StyleSheet.create({
     minHeight: 200,
     width: '100%',
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
 });
 
 const reference = database().ref('/users/');
@@ -39,6 +63,9 @@ class BusinessAdminScreen extends Component {
       lat: 31.8,
       lng: 34.65,
       events: [],
+      categories: [],
+      selectedCategory: '',
+      addEventModelShow: true,
       loading: false,
       businessId: this.props.route.params.businessId,
       feedbacks: [],
@@ -56,35 +83,7 @@ class BusinessAdminScreen extends Component {
     this.setState({ events: [] });
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
-    database()
-      .ref('/categories')
-      .once('value')
-      .then(snapshot => {
-        this.intVal = [];
-        // console.log('User categories: ', snapshot.val());
-        snapshot.forEach(child => {
-          this.intVal.push(child.val());
-        });
-        this.events = [];
-        this.intVal.forEach(x => {
-          database()
-            .ref('/events/' + x + '/' + this.state.businessId)
-            .once('value', snapshot => {
-              // console.log(
-              //   'User events type for businessId: ',
-              //   x,
-              //   snapshot.val(),
-              // );
-              snapshot.forEach(child => {
-                let item = { ...child.val(), catrgory: x, id: child.key };
-                // console.log('User events : ', item);
-
-                this.events.push(item);
-              });
-              this.setState({ events: [...this.events] });
-            });
-        });
-      });
+    this.fetchEvents();
 
     this.eventListener = database()
       .ref('/Business/' + this.state.businessId + '/')
@@ -109,6 +108,146 @@ class BusinessAdminScreen extends Component {
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
     // database().ref('/events').off('value', this.eventListener);
+  }
+  fetchEvents() {
+    database()
+      .ref('/categories')
+      .once('value')
+      .then(snapshot => {
+        this.intVal = [];
+        // console.log('User categories: ', snapshot.val());
+        snapshot.forEach(child => {
+          this.intVal.push(child.val());
+        });
+        this.setState({ categories: [...this.intVal] });
+        this.events = [];
+        this.intVal.forEach(x => {
+          database()
+            .ref('/events/' + x + '/' + this.state.businessId)
+            .once('value', snapshot => {
+              // console.log(
+              //   'User events type for businessId: ',
+              //   x,
+              //   snapshot.val(),
+              // );
+              snapshot.forEach(child => {
+                let item = { ...child.val(), catrgory: x, id: child.key };
+                // console.log('User events : ', item);
+
+                this.events.push(item);
+              });
+              this.setState({ events: [...this.events] });
+            });
+        });
+      });
+  }
+  AddEventModel() {
+    let name = '';
+    let time = '';
+
+    return (
+      <Modal
+        visible={this.state.addEventModelShow}
+        animationType="slide"
+        transparent={true}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end' }}
+              onPress={() => this.setState({ addEventModelShow: false })}>
+              <Text style={{ fontWeight: 'bold' }}>X</Text>
+            </TouchableOpacity>
+            <Text>הוספת ארוע</Text>
+            <Text>בחר קטגוריה</Text>
+            <Picker
+              style={{ width: 200 }}
+              mode="dropdown"
+              selectedValue={this.state.selectedCategory}
+              onValueChange={(itemValue, itemIndex) =>
+                this.setState({ selectedCategory: itemValue })
+              }>
+              {this.state.categories.map((item, i) => {
+                return <Picker.Item key={i} label={item} value={item} />;
+              })}
+            </Picker>
+
+            <View
+              style={{
+                justifyContent: 'flex-end',
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+              }}>
+              <TextInput
+                onChangeText={text => (name = text)}
+                style={{
+                  flex: 1,
+                  borderBottomWidth: 1,
+                  padding: 0,
+                  maxWidth: 200,
+                }}
+              />
+              <Text>שם</Text>
+            </View>
+            <View
+              style={{
+                justifyContent: 'flex-end',
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+              }}>
+              <TextInput
+                placeholder="12:00-18:00"
+                onChangeText={text => (time = text)}
+                style={{
+                  flex: 1,
+                  borderBottomWidth: 1,
+                  padding: 0,
+                  maxWidth: 200,
+                }}
+              />
+              <Text>זמן</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                database()
+                  .ref(
+                    '/events/' +
+                      this.state.selectedCategory +
+                      '/' +
+                      this.state.businessId +
+                      '/',
+                  )
+                  .push(
+                    {
+                      name,
+                      time,
+                      lat: this.state.lat,
+                      lng: this.state.lng,
+                      provider: this.state.name,
+                      startTime: 1234,
+                      endTime: 4321,
+                    },
+                    () => {
+                      this.setState({ addEventModelShow: false });
+                      this.fetchEvents();
+                    },
+                  );
+              }}
+              style={{
+                borderWidth: 1,
+                borderRadius: 20,
+                color: '#fff',
+                alignSelf: 'flex-start',
+                backgroundColor: '#44f',
+                paddingHorizontal: 20,
+                paddingVertical: 5,
+                marginTop: 15,
+              }}>
+              <Text style={{ color: '#fff', textAlign: 'left' }}>הוסף</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
   }
   handleBackButton() {
     return true;
@@ -148,6 +287,7 @@ class BusinessAdminScreen extends Component {
     return (
       <ScrollView>
         <View>
+          {this.AddEventModel()}
           <Text
             style={{
               textDecorationLine: 'underline',
@@ -157,7 +297,26 @@ class BusinessAdminScreen extends Component {
             {name}
           </Text>
           <Text>שעות פתיחה {openningHours}</Text>
-          <Text style={{ fontWeight: '700' }}>פרטי האירועים</Text>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <TouchableOpacity
+              onPress={() => this.setState({ addEventModelShow: true })}
+              style={{
+                borderWidth: 1,
+                borderRadius: 20,
+                color: '#fff',
+                alignSelf: 'flex-start',
+                backgroundColor: '#44f',
+                paddingHorizontal: 20,
+                paddingVertical: 5,
+                marginTop: 15,
+              }}>
+              <Text style={{ color: '#fff', textAlign: 'left' }}>הוסף</Text>
+            </TouchableOpacity>
+            <Text style={{ textAlignVertical: 'center', fontWeight: '700' }}>
+              פרטי האירועים
+            </Text>
+          </View>
           {events && (
             <ScrollView>
               <View style={{ flex: 1 }}>
@@ -226,7 +385,6 @@ class BusinessAdminScreen extends Component {
     );
   }
 }
-
 const mapStateToProps = state => ({
   user: state.user.user,
 });
@@ -298,7 +456,16 @@ export const MenuScreenEdit = ({ navigation, route }) => {
               <Text>מחיר</Text>
             </View>
             <TouchableOpacity
-            style={{borderWidth:1,borderRadius:20,color: '#fff',alignSelf:'flex-start',backgroundColor:'#44f',paddingHorizontal:20,paddingVertical:5,marginTop:15}}
+              style={{
+                borderWidth: 1,
+                borderRadius: 20,
+                color: '#fff',
+                alignSelf: 'flex-start',
+                backgroundColor: '#44f',
+                paddingHorizontal: 20,
+                paddingVertical: 5,
+                marginTop: 15,
+              }}
               onPress={() => {
                 database()
                   .ref('/Business/' + businessId + '/menu/' + id)
@@ -316,7 +483,11 @@ export const MenuScreenEdit = ({ navigation, route }) => {
                       });
                   });
               }}>
-              {method === 'add' ? <Text style={{color:'#fff',textAlign:'left'}}>הוסף</Text> : <Text style={{color:'#fff',textAlign:'left'}}>ערוך</Text>}
+              {method === 'add' ? (
+                <Text style={{ color: '#fff', textAlign: 'left' }}>הוסף</Text>
+              ) : (
+                <Text style={{ color: '#fff', textAlign: 'left' }}>ערוך</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -343,7 +514,12 @@ export const MenuScreenEdit = ({ navigation, route }) => {
                     flexDirection: 'row',
                   }}>
                   <View style={{ flexDirection: 'row' }}>
-                    <Text style={{ color: '#4499ff' }}>ערוך</Text>
+                    <Image
+                      style={{ tintColor: '#4499ff', width: 20, height: 20 }}
+                      resizeMode="center"
+                      source={require('../../assests/img/baseline_edit_black_24dp.png')}
+                    />
+
                     <Text>{item.price}$</Text>
                   </View>
                   <Text style={{ color: '#000000' }}>{item.name}</Text>
