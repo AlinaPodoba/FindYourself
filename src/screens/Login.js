@@ -47,9 +47,11 @@ class Login extends Component {
     auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then(() => {
+        this.setState({ error: null, loading: false });
         console.log('User account created & signed in!');
       })
       .catch(error => {
+
         if (error.code === 'auth/email-already-in-use') {
           this.setState({
             error: 'That email address is already in use!',
@@ -67,8 +69,17 @@ class Login extends Component {
 
           console.log('That email address is invalid!');
         }
+        if (error.code === 'auth/wrong-password') {
+          this.setState({
+            error: 'The password is invalid',
+            loading: false,
+          });
+
+          console.log('That password is invalid!');
+        }
 
         console.error(error);
+        // this.setState({ error: error.message, loading: false });
       });
   }
   async onGoogleButtonPress() {

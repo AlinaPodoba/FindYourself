@@ -21,7 +21,6 @@ const styles = StyleSheet.create({
   container: {
     minHeight: 200,
     flex: 1,
-    borderWidth: 1,
   },
   map: {
     position: 'relative',
@@ -34,7 +33,7 @@ const reference = database().ref('/users/');
 class Events extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
+    // console.log(props);
     this.state = {
       lat: 31.8,
       lng: 34.65,
@@ -46,6 +45,7 @@ class Events extends Component {
   }
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
+
     console.log('this.state.category', this.state.category);
     this.eventListener = database()
       .ref('/events/' + this.state.category + '/')
@@ -53,7 +53,7 @@ class Events extends Component {
         this.intVal = [];
         console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
-          console.log('User child: ', child.val());
+          console.log('User child: ',child.key, child.val());
           Object.keys(child.val()).map(subChild => {
             this.intVal.push({
               ...child.val()[subChild],
@@ -68,7 +68,6 @@ class Events extends Component {
               ),
             });
           });
-         
         });
         this.intVal.sort((a, b) => {
           return a.distance - b.distance;
@@ -97,7 +96,7 @@ class Events extends Component {
     // this.setState({ loading: true });
     Geolocation.getCurrentPosition(
       position => {
-        console.log(position);
+        // console.log(position);
         const { latitude: lat, longitude: lng } = position.coords;
         database()
           .ref('/users/' + user.uid)
@@ -142,22 +141,13 @@ class Events extends Component {
     const { navigation } = this.props;
     return (
       <View>
-        <Button
-          title="back to Home"
-          onPress={() => {
-            auth()
-              .signOut()
-              .then(() => console.log('User signed out!'));
-            navigation.goBack();
-          }}
-        />
         <Text>location</Text>
         <Text>
           lat {this.state.lat} lng {this.state.lng}
         </Text>
         <View>
           {this.state.events && (
-            <ScrollView style={{ borderWidth: 1 }}>
+            <ScrollView style={{ }}>
               <View style={{ flex: 1 }}>
                 {this.state.events.map((item, i) => (
                   <TouchableOpacity
@@ -172,11 +162,16 @@ class Events extends Component {
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
-                      justifyContent: 'space-between',
-                      flexDirection: 'row',
                     }}>
-                    <Text style={{ color: '#000000' }}>{item.name}</Text>
-                    <Text>{item.distance}km</Text>
+                    <Text>{item.provider}</Text>
+                    <View
+                      style={{
+                        justifyContent: 'space-between',
+                        flexDirection: 'row',
+                      }}>
+                      <Text style={{ color: '#000000' }}>{item.name}</Text>
+                      <Text>{item.distance}km</Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>

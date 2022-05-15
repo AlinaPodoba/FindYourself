@@ -8,7 +8,7 @@ import Register from './Register';
 import Login from './Login';
 import Events from './Events';
 import UserCargory from './UserCargory';
-import BusinessScreen, { MenuScreen } from './BusinessScreen';
+import BusinessScreen, { FeedbackScreen, MenuScreen } from './BusinessScreen';
 import BusinessAdminScreen, { MenuScreenEdit } from './BusinessAdminScreen';
 import { Button, Text, TouchableOpacity } from 'react-native';
 
@@ -43,6 +43,13 @@ class AppContainer extends Component {
             component={MenuScreenEdit}
             options={{
               title: 'עריכת התפריט',
+            }}
+          />
+          <Stack.Screen
+            name="FeedbackScreen"
+            component={FeedbackScreen}
+            options={{
+              title: 'תגובות ודירוג',
             }}
           />
           <Stack.Screen

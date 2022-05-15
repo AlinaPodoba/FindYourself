@@ -20,6 +20,8 @@ import { permission } from '../utils/permission';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
 
 const styles = StyleSheet.create({
   container: {
@@ -65,7 +67,7 @@ class BusinessAdminScreen extends Component {
       events: [],
       categories: [],
       selectedCategory: '',
-      addEventModelShow: true,
+      addEventModelShow: false,
       loading: false,
       businessId: this.props.route.params.businessId,
       feedbacks: [],
@@ -73,6 +75,9 @@ class BusinessAdminScreen extends Component {
       name: '',
       openningHours: '',
       isAddMenu: false,
+      datePickerShow: false,
+      timePickerShow: false,
+      time: new Date().getTime(),
     };
   }
   addItem() {
@@ -82,6 +87,19 @@ class BusinessAdminScreen extends Component {
   componentDidMount() {
     this.setState({ events: [] });
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
+    this.props.navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            auth()
+              .signOut()
+              .then(() => console.log('User signed out!'));
+            this.props.navigation.goBack();
+          }}>
+          <Text>יציאה</Text>
+        </TouchableOpacity>
+      ),
+    });
 
     this.fetchEvents();
 
@@ -143,7 +161,7 @@ class BusinessAdminScreen extends Component {
   }
   AddEventModel() {
     let name = '';
-    let time = '';
+    let timePariod = '';
 
     return (
       <Modal
@@ -190,13 +208,77 @@ class BusinessAdminScreen extends Component {
             </View>
             <View
               style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}>
+              <TouchableOpacity
+                style={{
+                  marginVertical: 10,
+                  width: 200,
+
+                  alignItems: 'center',
+                }}
+                onPress={() => this.setState({ timePickerShow: true })}>
+                <Text style={{ borderWidth: 1, borderRadius: 7, padding: 5 }}>
+                  {moment(this.state.time).format('DD/MM/YYYY')}
+                </Text>
+              </TouchableOpacity>
+              {this.state.timePickerShow && (
+                <RNDateTimePicker
+                  minimumDate={new Date()}
+                  value={new Date(this.state.time)}
+                  onChange={value =>
+                    this.setState({
+                      time: value.nativeEvent.timestamp,
+                      timePickerShow: false,
+                    })
+                  }
+                />
+              )}
+              <Text>תאריך</Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}>
+              <TouchableOpacity
+                style={{
+                  marginVertical: 10,
+                  width: 200,
+
+                  alignItems: 'center',
+                }}
+                onPress={() => this.setState({ datePickerShow: true })}>
+                <Text style={{ borderWidth: 1, borderRadius: 7, padding: 5 }}>
+                  {moment(this.state.time).format('HH:mm')}
+                </Text>
+              </TouchableOpacity>
+              {this.state.datePickerShow && (
+                <RNDateTimePicker
+                  mode="time"
+                  minimumDate={new Date()}
+                  value={new Date(this.state.time)}
+                  onChange={value =>
+                    this.setState({
+                      time: value.nativeEvent.timestamp,
+                      datePickerShow: false,
+                    })
+                  }
+                />
+              )}
+              <Text>שעה</Text>
+            </View>
+            <View
+              style={{
                 justifyContent: 'flex-end',
                 flexDirection: 'row',
                 alignItems: 'flex-end',
               }}>
               <TextInput
-                placeholder="12:00-18:00"
-                onChangeText={text => (time = text)}
+                onChangeText={text => (timePariod = text)}
                 style={{
                   flex: 1,
                   borderBottomWidth: 1,
@@ -204,7 +286,7 @@ class BusinessAdminScreen extends Component {
                   maxWidth: 200,
                 }}
               />
-              <Text>זמן</Text>
+              <Text>משך</Text>
             </View>
             <TouchableOpacity
               onPress={() => {
@@ -219,15 +301,23 @@ class BusinessAdminScreen extends Component {
                   .push(
                     {
                       name,
-                      time,
+                      time:
+                        moment(this.state.time).format('HH:mm') +
+                        '-' +
+                        moment(
+                          this.state.time + timePariod * 60 * 60 * 1000,
+                        ).format('HH:mm'),
                       lat: this.state.lat,
                       lng: this.state.lng,
                       provider: this.state.name,
-                      startTime: 1234,
-                      endTime: 4321,
+                      startTime: this.state.time,
+                      endTime: this.state.time + timePariod * 60 * 60 * 1000,
                     },
                     () => {
-                      this.setState({ addEventModelShow: false });
+                      this.setState({
+                        addEventModelShow: false,
+                        time: new Date().getTime(),
+                      });
                       this.fetchEvents();
                     },
                   );
@@ -494,7 +584,7 @@ export const MenuScreenEdit = ({ navigation, route }) => {
       )}
       {menu && (
         <View>
-          <ScrollView style={{ borderWidth: 1, paddingBottom: 100 }}>
+          <ScrollView style={{ paddingBottom: 100 }}>
             <View style={{ flex: 1 }}>
               {menu.map((item, i) => (
                 <TouchableOpacity

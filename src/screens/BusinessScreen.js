@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import {
   Button,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -34,7 +35,7 @@ const reference = database().ref('/users/');
 class BusinessScreen extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
+    // console.log(props);
     this.state = {
       lat: 31.8,
       lng: 34.65,
@@ -42,25 +43,17 @@ class BusinessScreen extends Component {
       loading: false,
       selectEvent: this.props.route.params.event,
       itemId: this.props.route.params.itemId,
-      businessId: this.props.route.params.itemId.split('+')[0],
+      businessId: this.props.route.params.itemId,
       feedbacks: [],
       menu: [],
       name: '',
-      openningHours: '',
+      openningHours: '1',
     };
   }
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
-    this.eventListener = database()
-      .ref('/Business/' + this.state.businessId + '/')
-      .once('value', snapshot => {
-        this.intVal = [];
-        console.log('User events: ', snapshot.val());
-        snapshot.forEach(child => {
-          this.setState({ [child.key]: child.val() });
-          console.log('User child: ', child.val());
-        });
-      });
+
+    this.refreshBusninessData()
     permission.check().then(res => {
       if (res) {
         this.getCurrentLocation();
@@ -75,6 +68,18 @@ class BusinessScreen extends Component {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
     // database().ref('/events').off('value', this.eventListener);
   }
+  refreshBusninessData(){
+    this.eventListener = database()
+      .ref('/Business/' + this.state.businessId + '/')
+      .once('value', snapshot => {
+        this.intVal = [];
+        console.log('User events: ', snapshot.val());
+        snapshot.forEach(child => {
+          this.setState({ [child.key]: child.val() });
+          // console.log('User child: ', child.key, child.val());
+        });
+      });
+  }
   handleBackButton() {
     return true;
   }
@@ -83,7 +88,7 @@ class BusinessScreen extends Component {
     // this.setState({ loading: true });
     Geolocation.getCurrentPosition(
       position => {
-        console.log(position);
+        // console.log(position);
         const { latitude: lat, longitude: lng } = position.coords;
         database()
           .ref('/users/' + user.uid)
@@ -130,9 +135,23 @@ class BusinessScreen extends Component {
             onPress={() => {
               navigation.navigate('MenuScreen', { menu });
             }}>
-            <Text>הקש לקבלת התפריט</Text>
+            <Text style={{ color: '#1111ff' }}>הקש לקבלת התפריט</Text>
           </TouchableOpacity>
-          <Text>תגובות ודירוג</Text>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('FeedbackScreen', {
+                  uid: this.props.user.uid,
+                  businessId: this.state.businessId,
+                  feedbacks,
+                  onUpdate:()=>{this.refreshBusninessData()}
+                });
+              }}>
+              <Text style={{ color: '#1111ff' }}>הוספת תגובה</Text>
+            </TouchableOpacity>
+            <Text>תגובות ודירוג</Text>
+          </View>
           {feedbacks && (
             <ScrollView>
               <View style={{ flex: 1 }}>
@@ -198,7 +217,7 @@ export const MenuScreen = ({ navigation, route }) => {
   return (
     <View>
       {menu && (
-        <ScrollView style={{ borderWidth: 1 }}>
+        <ScrollView style={{}}>
           <View style={{ flex: 1 }}>
             {menu.map((item, i) => (
               <View
@@ -217,6 +236,95 @@ export const MenuScreen = ({ navigation, route }) => {
           </View>
         </ScrollView>
       )}
+    </View>
+  );
+};
+
+export const FeedbackScreen = ({ navigation, route }) => {
+  const { uid, businessId, feedbacks, onUpdate } = route.params;
+  const [name, setName] = useState('');
+  const [stars, setStars] = useState('');
+  const [comment, setComment] = useState('');
+  return (
+    <View>
+      <View>
+        <View
+          style={{
+            justifyContent: 'flex-end',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+          }}>
+          <TextInput
+            value={name}
+            onChangeText={text => setName(text)}
+            style={{
+              flex: 1,
+              borderBottomWidth: 1,
+              padding: 0,
+              maxWidth: 200,
+            }}
+          />
+          <Text>שם</Text>
+        </View>
+        <View
+          style={{
+            justifyContent: 'flex-end',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+          }}>
+          <TextInput
+            value={stars}
+            onChangeText={stars => setStars(stars)}
+            keyboardType="numeric"
+            style={{
+              flex: 1,
+              borderBottomWidth: 1,
+              padding: 0,
+              maxWidth: 200,
+            }}
+          />
+          <Text>כוכבים</Text>
+        </View>
+        <View
+          style={{
+            justifyContent: 'flex-end',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+          }}>
+          <TextInput
+            value={comment}
+            onChangeText={text => setComment(text)}
+            style={{
+              flex: 1,
+              borderBottomWidth: 1,
+              padding: 0,
+              maxWidth: 200,
+            }}
+          />
+          <Text>תגובה</Text>
+        </View>
+        <TouchableOpacity
+          style={{
+            borderWidth: 1,
+            borderRadius: 20,
+            color: '#fff',
+            alignSelf: 'flex-start',
+            backgroundColor: '#44f',
+            paddingHorizontal: 20,
+            paddingVertical: 5,
+            marginTop: 15,
+          }}
+          onPress={() => {
+            database()
+              .ref('/Business/' + businessId + '/feedbacks/' + feedbacks.length)
+              .set({ name, id: uid, rate: Number(stars), comment }, () => {
+                onUpdate();
+                navigation.goBack();
+              });
+          }}>
+          <Text style={{ color: '#fff', textAlign: 'left' }}>הוספה</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

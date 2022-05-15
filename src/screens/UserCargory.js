@@ -26,6 +26,20 @@ class UserCargory extends Component {
   }
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
+
+    this.props.navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            auth()
+              .signOut()
+              .then(() => console.log('User signed out!'));
+            this.props.navigation.goBack();
+          }}>
+          <Text>יציאה</Text>
+        </TouchableOpacity>
+      ),
+    });
     // database()
     //   .ref('/managers')
     //   .once('value')
@@ -70,25 +84,8 @@ class UserCargory extends Component {
       });
     return (
       <View>
-        <Button
-          title="logout"
-          onPress={() => {
-            auth()
-              .signOut()
-              .then(() => console.log('User signed out!'));
-            navigation.goBack();
-          }}
-        />
         <Text>Find Yourself</Text>
-
         <Text> </Text>
-
-        <Button
-          title="go to event map"
-          onPress={() => {
-            navigation.navigate('Events');
-          }}
-        />
 
         {this.state.categories && (
           <ScrollView>
