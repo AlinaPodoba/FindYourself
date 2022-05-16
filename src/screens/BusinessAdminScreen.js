@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const reference = database().ref('/users/');
 class BusinessAdminScreen extends Component {
   constructor(props) {
     super(props);
@@ -68,15 +67,19 @@ class BusinessAdminScreen extends Component {
       categories: [],
       selectedCategory: '',
       addEventModelShow: false,
+      changeHoursModel: false,
       loading: false,
       businessId: this.props.route.params.businessId,
       feedbacks: [],
       menu: [],
       name: '',
+      nameEvent: '',
       openningHours: '',
       isAddMenu: false,
       datePickerShow: false,
       timePickerShow: false,
+      selectedItemId: null,
+      timePariod: '',
       time: new Date().getTime(),
     };
   }
@@ -159,10 +162,57 @@ class BusinessAdminScreen extends Component {
         });
       });
   }
+  changeHoursModel() {
+    return (
+      <Modal
+        visible={this.state.changeHoursModel}
+        animationType="slide"
+        transparent={true}>
+        <View style={styles.centeredView}>
+          <View style={[styles.modalView, { height: 200 }]}>
+            <TouchableOpacity
+              style={{ alignSelf: 'flex-end' }}
+              onPress={() => this.setState({ changeHoursModel: false })}>
+              <Text style={{ fontWeight: 'bold' }}>X</Text>
+            </TouchableOpacity>
+            <Text>שינוי שעות פתיחה</Text>
+            <TextInput
+              value={this.state.openningHours}
+              onChangeText={text => this.setState({ openningHours: text })}
+              style={{
+                flex: 1,
+                borderBottomWidth: 1,
+                padding: 0,
+                maxWidth: 200,
+              }}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                database()
+                  .ref('/Business/' + this.state.businessId + '/openningHours')
+                  .set(this.state.openningHours);
+                this.setState({ changeHoursModel: false });
+              }}
+              style={{
+                borderWidth: 1,
+                borderRadius: 20,
+                color: '#fff',
+                alignSelf: 'flex-start',
+                backgroundColor: '#44f',
+                paddingHorizontal: 20,
+                paddingVertical: 5,
+                marginTop: 15,
+              }}>
+              <Text style={{ color: '#fff', textAlign: 'left' }}>
+                שינוי שעות
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
   AddEventModel() {
-    let name = '';
-    let timePariod = '';
-
     return (
       <Modal
         visible={this.state.addEventModelShow}
@@ -175,8 +225,11 @@ class BusinessAdminScreen extends Component {
               onPress={() => this.setState({ addEventModelShow: false })}>
               <Text style={{ fontWeight: 'bold' }}>X</Text>
             </TouchableOpacity>
-            <Text>הוספת ארוע</Text>
-            <Text>בחר קטגוריה</Text>
+            {this.state.selectedItemId ? (
+              <Text>עריכת אירוע</Text>
+            ) : (
+              <Text>הוספת אירוע</Text>
+            )}
             <Picker
               style={{ width: 200 }}
               mode="dropdown"
@@ -184,6 +237,7 @@ class BusinessAdminScreen extends Component {
               onValueChange={(itemValue, itemIndex) =>
                 this.setState({ selectedCategory: itemValue })
               }>
+              <Picker.Item label="בחר קטגוריה" value="" />
               {this.state.categories.map((item, i) => {
                 return <Picker.Item key={i} label={item} value={item} />;
               })}
@@ -196,7 +250,8 @@ class BusinessAdminScreen extends Component {
                 alignItems: 'flex-end',
               }}>
               <TextInput
-                onChangeText={text => (name = text)}
+                value={this.state.nameEvent}
+                onChangeText={text => this.setState({ nameEvent: text })}
                 style={{
                   flex: 1,
                   borderBottomWidth: 1,
@@ -278,49 +333,84 @@ class BusinessAdminScreen extends Component {
                 alignItems: 'flex-end',
               }}>
               <TextInput
-                onChangeText={text => (timePariod = text)}
+                keyboardType="number-pad"
+                value={this.state.timePariod + ''}
+                onChangeText={text => this.setState({ timePariod: text })}
                 style={{
                   flex: 1,
                   borderBottomWidth: 1,
                   padding: 0,
-                  maxWidth: 200,
+                  maxWidth: 50,
                 }}
               />
-              <Text>משך</Text>
+              <Text>משך (בשעות)</Text>
             </View>
             <TouchableOpacity
               onPress={() => {
-                database()
-                  .ref(
-                    '/events/' +
-                      this.state.selectedCategory +
-                      '/' +
-                      this.state.businessId +
-                      '/',
-                  )
-                  .push(
+                if (
+                  this.state.selectedCategory == '' ||
+                  this.state.name == '' ||
+                  this.state.timePariod == ''
+                ) {
+                  Alert.alert('שגיאה', 'יש למלא את כל המקומות הריקים');
+                  return;
+                }
+                let ref = database().ref(
+                  '/events/' +
+                    this.state.selectedCategory +
+                    '/' +
+                    this.state.businessId +
+                    '/',
+                );
+                if (this.state.selectedItemId != null) {
+                  ref.child(this.state.selectedItemId).set(
                     {
-                      name,
+                      name: this.state.nameEvent,
                       time:
                         moment(this.state.time).format('HH:mm') +
                         '-' +
                         moment(
-                          this.state.time + timePariod * 60 * 60 * 1000,
+                          this.state.time +
+                            this.state.timePariod * 60 * 60 * 1000,
                         ).format('HH:mm'),
                       lat: this.state.lat,
                       lng: this.state.lng,
                       provider: this.state.name,
                       startTime: this.state.time,
-                      endTime: this.state.time + timePariod * 60 * 60 * 1000,
+                      endTime:
+                        this.state.time +
+                        this.state.timePariod * 60 * 60 * 1000,
                     },
                     () => {
-                      this.setState({
-                        addEventModelShow: false,
-                        time: new Date().getTime(),
-                      });
+                      this.resetEventDetail();
                       this.fetchEvents();
                     },
                   );
+                } else {
+                  ref.push(
+                    {
+                      name: this.state.nameEvent,
+                      time:
+                        moment(this.state.time).format('HH:mm') +
+                        '-' +
+                        moment(
+                          this.state.time +
+                            this.state.timePariod * 60 * 60 * 1000,
+                        ).format('HH:mm'),
+                      lat: this.state.lat,
+                      lng: this.state.lng,
+                      provider: this.state.name,
+                      startTime: this.state.time,
+                      endTime:
+                        this.state.time +
+                        this.state.timePariod * 60 * 60 * 1000,
+                    },
+                    () => {
+                      this.resetEventDetail();
+                      this.fetchEvents();
+                    },
+                  );
+                }
               }}
               style={{
                 borderWidth: 1,
@@ -341,6 +431,16 @@ class BusinessAdminScreen extends Component {
   }
   handleBackButton() {
     return true;
+  }
+  resetEventDetail() {
+    this.setState({
+      addEventModelShow: false,
+      time: new Date().getTime(),
+      selectedItemId: null,
+      nameEvent: '',
+      timePariod: '',
+      selectedCategory: '',
+    });
   }
   getCurrentLocation() {
     const { user, navigation } = this.props;
@@ -378,6 +478,7 @@ class BusinessAdminScreen extends Component {
       <ScrollView>
         <View>
           {this.AddEventModel()}
+          {this.changeHoursModel()}
           <Text
             style={{
               textDecorationLine: 'underline',
@@ -386,11 +487,35 @@ class BusinessAdminScreen extends Component {
             }}>
             {name}
           </Text>
-          <Text>שעות פתיחה {openningHours}</Text>
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <TouchableOpacity
-              onPress={() => this.setState({ addEventModelShow: true })}
+              onPress={() => this.setState({ changeHoursModel: true })}>
+              <Image
+                style={{ tintColor: '#4499ff', width: 20, height: 20 }}
+                resizeMode="center"
+                source={require('../../assests/img/baseline_edit_black_24dp.png')}
+              />
+            </TouchableOpacity>
+            <Text>שעות פתיחה {openningHours}</Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+              alignItems: 'center',
+            }}>
+            <TouchableOpacity
+              onPress={() =>
+                this.setState({
+                  addEventModelShow: true,
+                  nameEvent: '',
+                  time: new Date().getTime(),
+                  timePariod: '',
+                  selectedItemId: null,
+                  selectedCategory: '',
+                })
+              }
               style={{
                 borderWidth: 1,
                 borderRadius: 20,
@@ -403,7 +528,7 @@ class BusinessAdminScreen extends Component {
               }}>
               <Text style={{ color: '#fff', textAlign: 'left' }}>הוסף</Text>
             </TouchableOpacity>
-            <Text style={{ textAlignVertical: 'center', fontWeight: '700' }}>
+            <Text style={{ textAlign: 'center', fontWeight: '700' }}>
               פרטי האירועים
             </Text>
           </View>
@@ -411,7 +536,18 @@ class BusinessAdminScreen extends Component {
             <ScrollView>
               <View style={{ flex: 1 }}>
                 {events.map((item, i) => (
-                  <View
+                  <TouchableOpacity
+                    onPress={() => {
+                      this.setState({
+                        selectedItemId: item.id,
+                        selectedCategory: item.catrgory,
+                        time: item.startTime,
+                        nameEvent: item.name,
+                        timePariod:
+                          (item.endTime - item.startTime) / (60 * 60 * 1000),
+                      });
+                      this.setState({ addEventModelShow: true });
+                    }}
                     key={i}
                     style={{
                       borderWidth: 1,
@@ -428,7 +564,7 @@ class BusinessAdminScreen extends Component {
                       <Text>{item.name}</Text>
                       <Text>{item.time}</Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
@@ -441,7 +577,7 @@ class BusinessAdminScreen extends Component {
                 businessId: this.state.businessId,
               });
             }}>
-            <Text>הקש לקבלת התפריט</Text>
+            <Text style={{ color: '#1111ff' }}>הקש לקבלת התפריט</Text>
           </TouchableOpacity>
           <Text>תגובות ודירוג</Text>
           {feedbacks && (
