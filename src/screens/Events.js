@@ -53,20 +53,26 @@ class Events extends Component {
         this.intVal = [];
         console.log('User events: ', snapshot.val());
         snapshot.forEach(child => {
-          console.log('User child: ',child.key, child.val());
+          console.log('User child: ', child.key, child.val());
           Object.keys(child.val()).map(subChild => {
-            this.intVal.push({
-              ...child.val()[subChild],
-              id: child.key,
-              distance: Number(
-                this.getDistanceFromLatLonInKm(
-                  this.state.lat,
-                  this.state.lng,
-                  child.val()[subChild].lat,
-                  child.val()[subChild].lng,
-                ).toFixed(2),
-              ),
-            });
+            let distance = Number(
+              this.getDistanceFromLatLonInKm(
+                this.state.lat,
+                this.state.lng,
+                child.val()[subChild].lat,
+                child.val()[subChild].lng,
+              ).toFixed(2),
+            );
+            if (
+              child.val()[subChild].startTime > new Date().getTime() &&
+              distance <= 10
+            ) {
+              this.intVal.push({
+                ...child.val()[subChild],
+                id: child.key,
+                distance,
+              });
+            }
           });
         });
         this.intVal.sort((a, b) => {
@@ -141,13 +147,18 @@ class Events extends Component {
     const { navigation } = this.props;
     return (
       <View>
-        <Text>location</Text>
+        {/* <Text>location</Text>
         <Text>
           lat {this.state.lat} lng {this.state.lng}
-        </Text>
+        </Text> */}
         <View>
+          {this.state.events.length == 0 && (
+            <View>
+              <Text>לא נמצאו אירועים</Text>
+            </View>
+          )}
           {this.state.events && (
-            <ScrollView style={{ }}>
+            <ScrollView style={{}}>
               <View style={{ flex: 1 }}>
                 {this.state.events.map((item, i) => (
                   <TouchableOpacity
@@ -180,7 +191,7 @@ class Events extends Component {
         </View>
         <View style={styles.container}>
           {this.state.loading && <ActivityIndicator />}
-          {!this.state.loading && (
+          {!this.state.loading && this.state.events.length > 0 && (
             <MapView
               provider={PROVIDER_GOOGLE} // remove if not using Google Maps
               style={styles.map}
