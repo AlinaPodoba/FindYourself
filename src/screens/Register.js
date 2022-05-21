@@ -11,6 +11,7 @@ class Register extends Component {
     this.state = {
       email: '',
       password: '',
+      confirmPassword: '',
       error: null,
     };
     this.subscriber = null;
@@ -30,23 +31,27 @@ class Register extends Component {
   }
   makeRegister() {
     this.setState({ error: null });
-
-    auth()
-      .createUserWithEmailAndPassword(this.state.email, this.state.password)
-      .then(() => {
-        console.log('User account created & signed in!');
-      })
-      .catch(error => {
-        if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
-        }
-
-        if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
-        }
-
-        console.error(error);
-      });
+    if (this.state.confirmPassword != this.state.password) {
+      auth()
+        .createUserWithEmailAndPassword(this.state.email, this.state.password)
+        .then(() => {
+          console.log('User account created & signed in!');
+        })
+        .catch(error => {
+          if (error.code === 'auth/email-already-in-use') {
+            console.log('That email address is already in use!');
+            this.setState({ error: 'That email address is already in use!' });
+          } else if (error.code === 'auth/invalid-email') {
+            console.log('');
+            this.setState({ error: 'That email address is invalid!' });
+          } else {
+            this.setState({ error: error.message });
+            console.error(error);
+          }
+        });
+    } else {
+      this.setState({ error: "The passwords isn't match" });
+    }
   }
   render() {
     const { navigation } = this.props;
@@ -72,6 +77,17 @@ class Register extends Component {
             style={{ borderBottomWidth: 1, flex: 1 }}
             value={this.state.password}
             onChangeText={password => this.setState({ password })}
+          />
+        </View>
+        <View
+          style={{ flexDirection: 'row', margin: 10, alignItems: 'center' }}>
+          <Text style={{ minWidth: 75 }}>Confirm Password</Text>
+          <TextInput
+            placeholder="Confirm your password"
+            secureTextEntry={true}
+            style={{ borderBottomWidth: 1, flex: 1 }}
+            value={this.state.confirmPassword}
+            onChangeText={confirmPassword => this.setState({ confirmPassword })}
           />
         </View>
         {this.state.error && (
