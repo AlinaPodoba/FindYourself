@@ -475,7 +475,7 @@ class BusinessAdminScreen extends Component {
     const { navigation } = this.props;
     const { name, openningHours, menu, feedbacks, events } = this.state;
     return (
-      <ScrollView>
+      <ScrollView style={{backgroundColor:'#ffebcd'}}>
         <View>
           {this.AddEventModel()}
           {this.changeHoursModel()}
@@ -550,6 +550,8 @@ class BusinessAdminScreen extends Component {
                     }}
                     key={i}
                     style={{
+                      borderRadius:7,
+                      backgroundColor:'#f5f5f5',
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,

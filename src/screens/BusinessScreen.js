@@ -116,7 +116,7 @@ class BusinessScreen extends Component {
     const { navigation } = this.props;
     const { selectEvent, name, openningHours, menu, feedbacks } = this.state;
     return (
-      <View>
+      <ScrollView style={{backgroundColor:'#ffebcd'}}>
         <View>
           <Text
             style={{
@@ -159,6 +159,8 @@ class BusinessScreen extends Component {
                   <View
                     key={i}
                     style={{
+                      borderRadius:7,
+                      backgroundColor:'#f5f5f5',
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
@@ -202,7 +204,7 @@ class BusinessScreen extends Component {
             </MapView>
           )}
         </View>
-      </View>
+      </ScrollView>
     );
   }
 }
