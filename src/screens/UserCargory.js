@@ -7,12 +7,20 @@ import {
   BackHandler,
   ScrollView,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
 import { permission } from '../utils/permission';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
+
+const myImages = {
+  'Happy hour': require('../../assests/img/champagne-glass.png'),
+  Party: require('../../assests/img/dance.png'),
+  'Chliden activity': require('../../assests/img/family.png'),
+  'Business meal': require('../../assests/img/food.png'),
+};
 
 const reference = database().ref('/users/');
 class UserCargory extends Component {
@@ -83,7 +91,7 @@ class UserCargory extends Component {
         return e;
       });
     return (
-      <View>
+      <View style={{flex:1,backgroundColor:'#f9ffe3'}}>
         <Text>Find Yourself</Text>
         <Text> </Text>
 
@@ -98,6 +106,14 @@ class UserCargory extends Component {
                       navigation.navigate('Events', { category: x[0] });
                     }}>
                     <Text style={{ alignSelf: 'center' }}>{x[0]}</Text>
+                    <Image
+                      style={{
+                        width:100,
+                        height:100,
+                        margin: 5,
+                      }}
+                      source={myImages[x[0]]}
+                    />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -109,6 +125,14 @@ class UserCargory extends Component {
                       navigation.navigate('Events', { category: x[1] });
                     }}>
                     <Text>{x[1]}</Text>
+                    <Image
+                      style={{
+                        width:100,
+                        height:100,
+                        margin: 5,
+                      }}
+                      source={myImages[x[1]]}
+                    />
                   </TouchableOpacity>
                 </View>
               ))}
