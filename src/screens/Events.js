@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -16,6 +17,7 @@ import { permission } from '../utils/permission';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
+import { getImage } from '../utils/imageHolder';
 
 const styles = StyleSheet.create({
   container: {
@@ -146,7 +148,12 @@ class Events extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View>
+      <View style={{flex: 1, backgroundColor: '#f0ead6' }}>
+        <Image
+          source={getImage('logo')}
+          resizeMode="contain"
+          style={{ width: '100%', height: 50 }}
+        />
         {/* <Text>location</Text>
         <Text>
           lat {this.state.lat} lng {this.state.lng}

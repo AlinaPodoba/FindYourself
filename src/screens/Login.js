@@ -6,12 +6,14 @@ import {
   View,
   TextInput,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { countDown, countUp } from '../actions';
 import auth from '@react-native-firebase/auth';
 import { setUser } from '../actions/UserActions';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { getImage } from '../utils/imageHolder';
 
 GoogleSignin.configure({
   webClientId:
@@ -51,7 +53,6 @@ class Login extends Component {
         console.log('User account created & signed in!');
       })
       .catch(error => {
-
         if (error.code === 'auth/email-already-in-use') {
           this.setState({
             error: 'That email address is already in use!',
@@ -76,6 +77,17 @@ class Login extends Component {
           });
 
           console.log('That password is invalid!');
+        }
+        if (error.code === 'auth/too-many-requests') {
+          this.setState({
+            error:
+              'Access to this account has been temporarily disabled due to many failed login attempts.',
+            loading: false,
+          });
+
+          console.log(
+            'Access to this account has been temporarily disabled due to many failed login attempts.',
+          );
         }
 
         console.error(error);
@@ -104,7 +116,12 @@ class Login extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View>
+      <View style={{ flex: 1, backgroundColor: '#f0ead6' }}>
+        <Image
+          source={getImage('logo')}
+          resizeMode="contain"
+          style={{ width: '100%', height: 100 }}
+        />
         <View
           style={{ flexDirection: 'row', margin: 10, alignItems: 'center' }}>
           <Text style={{ minWidth: 75 }}>Email</Text>
@@ -145,6 +162,7 @@ class Login extends Component {
           onPress={() => this.makeLogin()}>
           {this.state.loading ? <ActivityIndicator /> : <Text>Login</Text>}
         </TouchableOpacity>
+        <Text></Text>
         <Button
           title="login with Goggle"
           onPress={() =>
@@ -153,6 +171,7 @@ class Login extends Component {
             )
           }
         />
+        <Text></Text>
         <Button
           title="register instead"
           onPress={() => navigation.navigate('Register', { id: '2' })}

@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Image,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
@@ -17,6 +18,8 @@ import { permission } from '../utils/permission';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
+import { getImage } from '../utils/imageHolder';
+import { Rating, AirbnbRating } from 'react-native-ratings';
 
 const styles = StyleSheet.create({
   container: {
@@ -53,7 +56,7 @@ class BusinessScreen extends Component {
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
-    this.refreshBusninessData()
+    this.refreshBusninessData();
     permission.check().then(res => {
       if (res) {
         this.getCurrentLocation();
@@ -68,7 +71,7 @@ class BusinessScreen extends Component {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
     // database().ref('/events').off('value', this.eventListener);
   }
-  refreshBusninessData(){
+  refreshBusninessData() {
     this.eventListener = database()
       .ref('/Business/' + this.state.businessId + '/')
       .once('value', snapshot => {
@@ -116,7 +119,12 @@ class BusinessScreen extends Component {
     const { navigation } = this.props;
     const { selectEvent, name, openningHours, menu, feedbacks } = this.state;
     return (
-      <ScrollView style={{backgroundColor:'#ffebcd'}}>
+      <ScrollView style={{ backgroundColor: '#f0ead6' }}>
+        <Image
+          source={getImage('logo')}
+          resizeMode="contain"
+          style={{ width: '100%', height: 50 }}
+        />
         <View>
           <Text
             style={{
@@ -145,7 +153,9 @@ class BusinessScreen extends Component {
                   uid: this.props.user.uid,
                   businessId: this.state.businessId,
                   feedbacks,
-                  onUpdate:()=>{this.refreshBusninessData()}
+                  onUpdate: () => {
+                    this.refreshBusninessData();
+                  },
                 });
               }}>
               <Text style={{ color: '#1111ff' }}>הוספת תגובה</Text>
@@ -159,8 +169,8 @@ class BusinessScreen extends Component {
                   <View
                     key={i}
                     style={{
-                      borderRadius:7,
-                      backgroundColor:'#f5f5f5',
+                      borderRadius: 7,
+                      backgroundColor: '#f5f5f5',
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
@@ -171,7 +181,23 @@ class BusinessScreen extends Component {
                         justifyContent: 'space-between',
                         flexDirection: 'row',
                       }}>
-                      <Text>{item.rate} stars</Text>
+                      <Rating
+                        readonly={true}
+                        type="star"
+                        ratingCount={5}
+                        imageSize={20}
+                        startingValue={item.rate}
+                        tintColor="#f5f5f5"
+                      />
+                      {/* <Stars
+                        display={3.67}
+                        spacing={8}
+                        count={5}
+                        starSize={40}
+                        fullStar={getImage('starFilled')}
+                        emptyStar={getImage('starEmpty')}
+                      /> */}
+
                       <Text>{item.comment}</Text>
                     </View>
                     <Text style={{ color: '#000000' }}>{item.name}</Text>
@@ -217,7 +243,7 @@ const mapDispatchToProps = {};
 export const MenuScreen = ({ navigation, route }) => {
   const { menu } = route.params;
   return (
-    <View>
+    <View style={{ flex: 1, backgroundColor: '#f0ead6' }}>
       {menu && (
         <ScrollView style={{}}>
           <View style={{ flex: 1 }}>
@@ -252,10 +278,12 @@ export const FeedbackScreen = ({ navigation, route }) => {
       <View>
         <View
           style={{
-            justifyContent: 'flex-end',
+            justifyContent: 'flex-start',
             flexDirection: 'row',
-            alignItems: 'flex-end',
+            alignItems: 'flex-start',
           }}>
+          <Text>שם</Text>
+
           <TextInput
             value={name}
             onChangeText={text => setName(text)}
@@ -266,33 +294,32 @@ export const FeedbackScreen = ({ navigation, route }) => {
               maxWidth: 200,
             }}
           />
-          <Text>שם</Text>
         </View>
         <View
           style={{
-            justifyContent: 'flex-end',
+            marginVertical: 20,
+            justifyContent: 'center',
             flexDirection: 'row',
-            alignItems: 'flex-end',
+            alignItems: 'center',
           }}>
-          <TextInput
-            value={stars}
-            onChangeText={stars => setStars(stars)}
-            keyboardType="numeric"
-            style={{
-              flex: 1,
-              borderBottomWidth: 1,
-              padding: 0,
-              maxWidth: 200,
-            }}
+          <Rating
+            RTL={true}
+            onSwipeRating={stars => setStars(stars)}
+            type="star"
+            ratingCount={5}
+            imageSize={20}
+            startingValue={3}
+            tintColor="#f5f5f5"
           />
-          <Text>כוכבים</Text>
         </View>
         <View
           style={{
-            justifyContent: 'flex-end',
+            justifyContent: 'flex-start',
             flexDirection: 'row',
-            alignItems: 'flex-end',
+            alignItems: 'flex-start',
           }}>
+          <Text>תגובה</Text>
+
           <TextInput
             value={comment}
             onChangeText={text => setComment(text)}
@@ -303,7 +330,6 @@ export const FeedbackScreen = ({ navigation, route }) => {
               maxWidth: 200,
             }}
           />
-          <Text>תגובה</Text>
         </View>
         <TouchableOpacity
           style={{

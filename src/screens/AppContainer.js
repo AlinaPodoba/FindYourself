@@ -21,7 +21,11 @@ class AppContainer extends Component {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Home"
             component={Home}

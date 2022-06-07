@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
-import { Button, Text, TouchableOpacity, View, TextInput } from 'react-native';
+import {
+  Button,
+  Text,
+  TouchableOpacity,
+  View,
+  TextInput,
+  Image,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { countDown, countUp } from '../actions';
 import auth from '@react-native-firebase/auth';
 import { setUser } from '../actions/UserActions';
+import { getImage } from '../utils/imageHolder';
 
 class Register extends Component {
   constructor(props) {
@@ -56,7 +64,12 @@ class Register extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View>
+      <View style={{ flex:1,backgroundColor: '#f0ead6' }}>
+        <Image
+          source={getImage('logo')}
+          resizeMode="contain"
+          style={{ width: '100%', height: 100 }}
+        />
         <View
           style={{ flexDirection: 'row', margin: 10, alignItems: 'center' }}>
           <Text style={{ minWidth: 75 }}>Email</Text>

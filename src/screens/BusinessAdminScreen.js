@@ -22,6 +22,9 @@ import database from '@react-native-firebase/database';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import { Rating, AirbnbRating } from 'react-native-ratings';
+
+import { getImage } from '../utils/imageHolder';
 
 const styles = StyleSheet.create({
   container: {
@@ -475,7 +478,12 @@ class BusinessAdminScreen extends Component {
     const { navigation } = this.props;
     const { name, openningHours, menu, feedbacks, events } = this.state;
     return (
-      <ScrollView style={{backgroundColor:'#ffebcd'}}>
+      <ScrollView style={{ backgroundColor: '#f0ead6' }}>
+        <Image
+          source={getImage('logo')}
+          resizeMode="contain"
+          style={{ width: '100%', height: 50 }}
+        />
         <View>
           {this.AddEventModel()}
           {this.changeHoursModel()}
@@ -550,8 +558,8 @@ class BusinessAdminScreen extends Component {
                     }}
                     key={i}
                     style={{
-                      borderRadius:7,
-                      backgroundColor:'#f5f5f5',
+                      borderRadius: 7,
+                      backgroundColor: '#f5f5f5',
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
@@ -599,7 +607,14 @@ class BusinessAdminScreen extends Component {
                         justifyContent: 'space-between',
                         flexDirection: 'row',
                       }}>
-                      <Text>{item.rate} stars</Text>
+                       <Rating
+                        readonly={true}
+                        type="star"
+                        ratingCount={5}
+                        imageSize={20}
+                        startingValue={item.rate}
+                        tintColor="#f5f5f5"
+                      />
                       <Text>{item.comment}</Text>
                     </View>
                     <Text style={{ color: '#000000' }}>{item.name}</Text>
@@ -642,7 +657,7 @@ export const MenuScreenEdit = ({ navigation, route }) => {
     ),
   });
   return (
-    <View>
+    <View style={{flex:1, backgroundColor: '#f0ead6' }}>
       {itemsAddShow && (
         <View style={{ paddingBottom: 20 }}>
           {method === 'add' ? <Text>הוספת מוצר</Text> : <Text>עריכת מוצר</Text>}
