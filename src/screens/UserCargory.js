@@ -17,10 +17,10 @@ import database from '@react-native-firebase/database';
 import { getImage } from '../utils/imageHolder';
 
 const myImages = {
-  'Happy hour': require('../../assests/img/champagne-glass.png'),
-  Party: require('../../assests/img/dance.png'),
-  'Chliden activity': require('../../assests/img/family.png'),
-  'Business meal': require('../../assests/img/food.png'),
+  'האפי אוור': require('../../assests/img/champagne-glass.png'),
+  מסיבה: require('../../assests/img/dance.png'),
+  'פעילות לילדים': require('../../assests/img/family.png'),
+  'ארוחה עיסקית': require('../../assests/img/food.png'),
 };
 
 const reference = database().ref('/users/');
@@ -63,7 +63,7 @@ class UserCargory extends Component {
     //     }
     //   });
     database()
-      .ref('/categories')
+      .ref('/categories_he')
       .once('value')
       .then(snapshot => {
         this.intVal = [];
@@ -149,6 +149,7 @@ class UserCargory extends Component {
 }
 const styles = StyleSheet.create({
   categoryStyle: {
+    backgroundColor: '#afffff',
     borderWidth: 1,
     flex: 1,
     margin: 20,

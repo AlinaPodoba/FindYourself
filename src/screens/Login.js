@@ -116,7 +116,7 @@ class Login extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View style={{ flex: 1, backgroundColor: '#f0ead6' }}>
+      <View style={{ flex: 1, backgroundColor: '#f0ead6' ,justifyContent:'center'}}>
         <Image
           source={getImage('logo')}
           resizeMode="contain"

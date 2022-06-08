@@ -135,7 +135,7 @@ class BusinessAdminScreen extends Component {
   }
   fetchEvents() {
     database()
-      .ref('/categories')
+      .ref('/categories_he')
       .once('value')
       .then(snapshot => {
         this.intVal = [];
@@ -597,6 +597,8 @@ class BusinessAdminScreen extends Component {
                   <View
                     key={i}
                     style={{
+                      borderRadius: 7,
+                      backgroundColor: '#f5f5f5',
                       borderWidth: 1,
                       padding: 10,
                       margin: 10,
