@@ -149,7 +149,7 @@ class UserCargory extends Component {
 }
 const styles = StyleSheet.create({
   categoryStyle: {
-    backgroundColor: '#afffff',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     flex: 1,
     margin: 20,
