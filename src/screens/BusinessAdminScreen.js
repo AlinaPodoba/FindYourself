@@ -352,10 +352,16 @@ class BusinessAdminScreen extends Component {
               onPress={() => {
                 if (
                   this.state.selectedCategory == '' ||
-                  this.state.name == '' ||
+                  this.state.nameEvent == '' ||
                   this.state.timePariod == ''
                 ) {
-                  Alert.alert('שגיאה', 'יש למלא את כל המקומות הריקים');
+                  let error = '\n';
+                  if (this.state.selectedCategory == '')
+                    error += 'חסרה קטגוריה\n';
+                  if (this.state.nameEvent == '') error += 'חסר שם האירוע\n';
+                  if (this.state.timePariod == '') error += 'חסר זמן האירוע\n';
+
+                  Alert.alert('שגיאה', 'יש למלא את כל המקומות הריקים' + error);
                   return;
                 }
                 let ref = database().ref(
@@ -609,7 +615,7 @@ class BusinessAdminScreen extends Component {
                         justifyContent: 'space-between',
                         flexDirection: 'row',
                       }}>
-                       <Rating
+                      <Rating
                         readonly={true}
                         type="star"
                         ratingCount={5}
@@ -659,7 +665,7 @@ export const MenuScreenEdit = ({ navigation, route }) => {
     ),
   });
   return (
-    <View style={{flex:1, backgroundColor: '#f0ead6' }}>
+    <View style={{ flex: 1, backgroundColor: '#f0ead6' }}>
       {itemsAddShow && (
         <View style={{ paddingBottom: 20 }}>
           {method === 'add' ? <Text>הוספת מוצר</Text> : <Text>עריכת מוצר</Text>}
