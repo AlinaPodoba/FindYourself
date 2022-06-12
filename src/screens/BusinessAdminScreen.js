@@ -771,7 +771,7 @@ export const MenuScreenEdit = ({ navigation, route }) => {
                       source={require('../../assests/img/baseline_edit_black_24dp.png')}
                     />
 
-                    <Text>{item.price}$</Text>
+                    <Text>{item.price}</Text>
                   </View>
                   <Text style={{ color: '#000000' }}>{item.name}</Text>
                 </TouchableOpacity>

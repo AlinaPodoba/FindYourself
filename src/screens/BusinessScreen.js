@@ -258,7 +258,7 @@ export const MenuScreen = ({ navigation, route }) => {
                   flexDirection: 'row',
                 }}>
                 <Text style={{ color: '#000000' }}>{item.name}</Text>
-                <Text>{item.price}$</Text>
+                <Text>{item.price}</Text>
               </View>
             ))}
           </View>
