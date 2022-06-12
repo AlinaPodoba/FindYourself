@@ -39,7 +39,7 @@ class Register extends Component {
   }
   makeRegister() {
     this.setState({ error: null });
-    if (this.state.confirmPassword != this.state.password) {
+    if (this.state.confirmPassword == this.state.password) {
       auth()
         .createUserWithEmailAndPassword(this.state.email, this.state.password)
         .then(() => {
@@ -58,6 +58,7 @@ class Register extends Component {
           }
         });
     } else {
+      console.log(this.state.confirmPassword, this.state.password);
       this.setState({ error: "The passwords isn't match" });
     }
   }

@@ -60,25 +60,21 @@ class Login extends Component {
           });
 
           console.log('That email address is already in use!');
-        }
-
-        if (error.code === 'auth/invalid-email') {
+        } else if (error.code === 'auth/invalid-email') {
           this.setState({
             error: 'That email address is invalid!',
             loading: false,
           });
 
           console.log('That email address is invalid!');
-        }
-        if (error.code === 'auth/wrong-password') {
+        } else if (error.code === 'auth/wrong-password') {
           this.setState({
             error: 'The password is invalid',
             loading: false,
           });
 
           console.log('That password is invalid!');
-        }
-        if (error.code === 'auth/too-many-requests') {
+        } else if (error.code === 'auth/too-many-requests') {
           this.setState({
             error:
               'Access to this account has been temporarily disabled due to many failed login attempts.',
@@ -88,10 +84,10 @@ class Login extends Component {
           console.log(
             'Access to this account has been temporarily disabled due to many failed login attempts.',
           );
+        } else {
+          console.error(error);
+          this.setState({ error: error.message, loading: false });
         }
-
-        console.error(error);
-        // this.setState({ error: error.message, loading: false });
       });
   }
   async onGoogleButtonPress() {
@@ -116,7 +112,12 @@ class Login extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View style={{ flex: 1, backgroundColor: '#f0ead6' ,justifyContent:'center'}}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#f0ead6',
+          justifyContent: 'center',
+        }}>
         <Image
           source={getImage('logo')}
           resizeMode="contain"
