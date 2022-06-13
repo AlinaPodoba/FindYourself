@@ -18,6 +18,7 @@ import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
 import { getImage } from '../utils/imageHolder';
+import moment from 'moment';
 
 const styles = StyleSheet.create({
   container: {
@@ -148,7 +149,7 @@ class Events extends Component {
   render() {
     const { navigation } = this.props;
     return (
-      <View style={{flex: 1, backgroundColor: '#f0ead6' }}>
+      <View style={{ flex: 1, backgroundColor: '#f0ead6' }}>
         <Image
           source={getImage('logo')}
           resizeMode="contain"
@@ -181,7 +182,14 @@ class Events extends Component {
                       padding: 10,
                       margin: 10,
                     }}>
-                    <Text>{item.provider}</Text>
+                    <View
+                      style={{
+                        justifyContent: 'space-between',
+                        flexDirection: 'row',
+                      }}>
+                      <Text>{moment(item.startTime).format('DD/MM/YYYY')}</Text>
+                      <Text>{item.provider}</Text>
+                    </View>
                     <View
                       style={{
                         justifyContent: 'space-between',
