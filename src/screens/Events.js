@@ -67,7 +67,7 @@ class Events extends Component {
               ).toFixed(2),
             );
             if (
-              child.val()[subChild].startTime > new Date().getTime() &&
+              child.val()[subChild].endTime > new Date().getTime() &&
               distance <= 10
             ) {
               this.intVal.push({
