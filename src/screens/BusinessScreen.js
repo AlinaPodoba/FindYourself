@@ -186,7 +186,7 @@ class BusinessScreen extends Component {
                         type="star"
                         ratingCount={5}
                         imageSize={20}
-                        startingValue={item.rate}
+                        startingValue={Number(item.rate)}
                         tintColor="#f5f5f5"
                       />
                       {/* <Stars
@@ -304,12 +304,15 @@ export const FeedbackScreen = ({ navigation, route }) => {
           }}>
           <Rating
             RTL={true}
-            onSwipeRating={stars => setStars(stars)}
+            onSwipeRating={stars => {
+              setStars(stars);
+            }}
             type="star"
             ratingCount={5}
             imageSize={20}
             startingValue={3}
-            tintColor="#f5f5f5"
+            ratingColor="#ff4"
+            ratingBackgroundColor="#f5f5f5"
           />
         </View>
         <View
@@ -345,7 +348,7 @@ export const FeedbackScreen = ({ navigation, route }) => {
           onPress={() => {
             database()
               .ref('/Business/' + businessId + '/feedbacks/' + feedbacks.length)
-              .set({ name, id: uid, rate: Number(stars), comment }, () => {
+              .set({ name, id: uid, rate: stars, comment }, () => {
                 onUpdate();
                 navigation.goBack();
               });
